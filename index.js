@@ -40,7 +40,7 @@ exports.clear = function() {
   cache = {};
 }
 
-exports.get = function(key) {
+exports.get = function(regexKey) {
   var matches, response = [];
 
   matches = cache.keys.match(regexKey)
