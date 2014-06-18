@@ -1,21 +1,26 @@
-var cache = {}
 function now() { return (new Date).getTime(); }
-var debug = false;
-var hitCount = 0;
-var missCount = 0;
+var cache = {},
+    debug = false,
+    hitCount = 0,
+    missCount = 0;
 
 exports.put = function(key, value, time, timeoutCallback) {
+  var oldRecord, expire, record, timeout;
+
   if (debug) console.log('caching: '+key+' = '+value+' (@'+time+')');
-  var oldRecord = cache[key];
+
+  oldRecord = cache[key];
+  cache.keys += ("," + key);
+
 	if (oldRecord) {
 		clearTimeout(oldRecord.timeout);
 	}
 
-	var expire = time + now();
-	var record = {value: value, expire: expire};
+	expire = time + now();
+	record = {value: value, expire: expire};
 
 	if (!isNaN(expire)) {
-		var timeout = setTimeout(function() {
+		timeout = setTimeout(function() {
 	    exports.del(key);
 	    if (typeof timeoutCallback === 'function') {
 	    	timeoutCallback(key);
@@ -36,20 +41,27 @@ exports.clear = function() {
 }
 
 exports.get = function(key) {
-  var data = cache[key];
-  if (typeof data != "undefined") {
-    if (isNaN(data.expire) || data.expire >= now()) {
-	  if (debug) hitCount++;
-      return data.value;
-    } else {
-      // free some space
-      if (debug) missCount++;
-      exports.del(key);
+  var matches, response = [];
+
+  matches = cache.keys.match(regexKey)
+
+
+  for (var i in matches){
+    var data = cache[matches[i]];
+    if (typeof data != "undefined") {
+      if (isNaN(data.expire) || data.expire >= now()) {
+        if (debug) hitCount++;
+        return data.value;
+      } else {
+        // free some space
+        if (debug) missCount++;
+        exports.del(key);
+      }
+    } else if (debug) {
+      missCount++;
     }
-  } else if (debug) {
-    missCount++;
   }
-  return null;
+  return response;
 }
 
 exports.size = function() { 
