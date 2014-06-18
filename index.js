@@ -51,7 +51,7 @@ exports.get = function(regexKey) {
     if (typeof data != "undefined") {
       if (isNaN(data.expire) || data.expire >= now()) {
         if (debug) hitCount++;
-        response.push(data)
+        response.push(data.value);
       } else {
         // free some space
         if (debug) missCount++;
